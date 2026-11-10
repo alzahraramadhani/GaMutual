@@ -195,7 +195,7 @@ class InstagramService:
         Supports seamless mock mode for UI/UX testing & live instagrapi for production.
         """
         # If test challenge user or password has "challenge"
-        if username == "challenge_test" or "challenge" in password.lower():
+        if username != "jjahrav" and (username == "challenge_test" or "challenge" in password.lower()):
             temp_id = f"temp_session_{uuid.uuid4().hex[:12]}"
             _pending_challenges[temp_id] = {
                 "username": username,
@@ -399,14 +399,16 @@ class InstagramService:
                 raise ValueError(f"Kode verifikasi salah atau gagal diverifikasi: {str(e)}")
 
         # Mock verified
+        if username == "jjahrav":
+            raise ValueError("Akun asli @jjahrav tidak dapat diverifikasi menggunakan sesi mock.")
         _pending_challenges.pop(temporary_session_id, None)
         profile = MOCK_ACCOUNTS.get(username, {
             "ig_pk": deterministic_ig_pk(username),
             "username": username,
             "full_name": username.capitalize(),
             "profile_pic_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-            "follower_count": 1345,
-            "following_count": 842,
+            "follower_count": 100,
+            "following_count": 50,
         })
         return {
             "status": "SUCCESS",

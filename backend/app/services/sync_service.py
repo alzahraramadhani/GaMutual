@@ -194,10 +194,10 @@ class SyncService:
         snapshot = IGSnapshot(
             id=str(uuid.uuid4()),
             ig_account_id=account.id,
-            follower_count=account.follower_count or 1345,
-            following_count=account.following_count or 842,
-            new_followers_count=8,
-            unfollowers_count=2,
+            follower_count=account.follower_count if account.follower_count is not None else (100 if is_mock_account else 0),
+            following_count=account.following_count if account.following_count is not None else (50 if is_mock_account else 0),
+            new_followers_count=8 if is_mock_account else 0,
+            unfollowers_count=2 if is_mock_account else 0,
             created_at=now,
         )
         db.add(snapshot)
@@ -209,8 +209,8 @@ class SyncService:
         return {
             "status": "COMPLETED",
             "progress_percentage": 100,
-            "detected_unfollowers": 2,
-            "detected_new_followers": 8,
+            "detected_unfollowers": 2 if is_mock_account else 0,
+            "detected_new_followers": 8 if is_mock_account else 0,
             "synced_at": now.isoformat(),
         }
 
