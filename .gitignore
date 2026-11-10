@@ -1,0 +1,144 @@
+# ==============================================================================
+# GaMutual Root .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Secrets & Environment Variables (STRICT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+!**/.env.example
+
+# ------------------------------------------------------------------------------
+# Database Files & Local Storage
+# ------------------------------------------------------------------------------
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+gamutual.db
+backend/gamutual.db
+
+# ------------------------------------------------------------------------------
+# Python & Backend Artifacts
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+# Python build & distribution artifacts
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+
+
+# Virtual Environments
+venv/
+venv*/
+env/
+env*/
+ENV/
+.venv/
+backend/venv/
+backend/.venv/
+
+# Pytest & Coverage
+.pytest_cache/
+backend/.pytest_cache/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ------------------------------------------------------------------------------
+# Node.js & Frontend Artifacts (Next.js)
+# ------------------------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+.pnpm-store/
+jspm_packages/
+
+# Next.js build output
+.next/
+frontend/.next/
+out/
+frontend/out/
+
+# Production build artifacts
+dist/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# Operating System & IDE Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editors & IDEs
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.sublime-workspace
+*.sublime-project
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Temporary Files
+*.tmp
+*.bak
+*.sw?
+*~
