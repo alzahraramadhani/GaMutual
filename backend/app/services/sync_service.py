@@ -14,7 +14,7 @@ from app.db.models import (
     IGSnapshot,
     IGWhitelist,
 )
-from app.services.ig_client import MOCK_UNFOLLOWERS, MOCK_EVENTS
+from app.services.ig_client import MOCK_ACCOUNTS, MOCK_UNFOLLOWERS, MOCK_EVENTS
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +27,24 @@ class SyncService:
         now = datetime.now(timezone.utc)
         today = date.today()
 
+        decrypted_session = ""
+        if account.encrypted_session_data:
+            try:
+                decrypted_session = decrypt_data(account.encrypted_session_data)
+            except Exception:
+                decrypted_session = ""
+
         is_mock_account = (
-            account.username.startswith("test_")
+            settings.MOCK_IG_MODE
+            or account.username in MOCK_ACCOUNTS
+            or account.username.startswith("test_")
             or account.username.startswith("demo_")
-            or account.username in ("demo_test",)
+            or account.username.startswith("quota_test_")
+            or account.username.startswith("mutex_test_")
+            or account.username.startswith("user_")
             or not account.encrypted_session_data
-            or "mock_session" in (account.encrypted_session_data or "")
+            or "mock_session" in decrypted_session
+            or "verified_" in decrypted_session
         )
 
         if not is_mock_account:
@@ -157,23 +169,23 @@ class SyncService:
                         last_checked_at=now,
                     ))
 
-                stmt_evt = select(IGEvent).where(IGEvent.ig_account_id == account.id)
-                res_evt = await db.execute(stmt_evt)
-                if len(res_evt.scalars().all()) == 0:
-                    for ev in MOCK_EVENTS:
-                        ev_date = today if ev["hours_ago"] < 24 else (today - timedelta(days=1))
-                        ev_time = now - timedelta(hours=ev["hours_ago"])
-                        db.add(IGEvent(
-                            id=str(uuid.uuid4()),
-                            ig_account_id=account.id,
-                            target_ig_pk=ev["target_ig_pk"],
-                            target_username=ev["target_username"],
-                            target_full_name=ev["target_full_name"],
-                            target_pic_url=ev["target_pic_url"],
-                            event_type=ev["event_type"],
-                            event_date=ev_date,
-                            created_at=ev_time,
-                        ))
+            stmt_evt = select(IGEvent).where(IGEvent.ig_account_id == account.id)
+            res_evt = await db.execute(stmt_evt)
+            if len(res_evt.scalars().all()) == 0:
+                for ev in MOCK_EVENTS:
+                    ev_date = today if ev["hours_ago"] < 24 else (today - timedelta(days=1))
+                    ev_time = now - timedelta(hours=ev["hours_ago"])
+                    db.add(IGEvent(
+                        id=str(uuid.uuid4()),
+                        ig_account_id=account.id,
+                        target_ig_pk=ev["target_ig_pk"],
+                        target_username=ev["target_username"],
+                        target_full_name=ev["target_full_name"],
+                        target_pic_url=ev["target_pic_url"],
+                        event_type=ev["event_type"],
+                        event_date=ev_date,
+                        created_at=ev_time,
+                    ))
 
         # Create snapshot record
         snapshot = IGSnapshot(

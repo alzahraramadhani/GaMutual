@@ -129,7 +129,7 @@ c:\GaMutual\
 - [ ] Konfigurasi Tailwind CSS dengan token warna desain GaMutual (`#251245`, `#FEA619`, `#10B981`, dll).
 
 ### Tahap 2: Backend Database & Core Security
-- [ ] Buat model ORM SQLAlchemy di `backend/app/db/models.py` sesuai [DATABASE_SCHEMA.md](file:///c:/GaMutual/DATABASE_SCHEMA.md).
+- [ ] Buat model ORM SQLAlchemy di `backend/app/db/models.py` sesuai [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md).
 - [ ] Implementasikan utilitas enkripsi AES-256 di `backend/app/core/security.py`.
 - [ ] Siapkan koneksi PostgreSQL dan Redis di `backend/app/core/config.py`.
 
