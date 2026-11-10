@@ -35,16 +35,19 @@ class SyncService:
                 decrypted_session = ""
 
         is_mock_account = (
-            settings.MOCK_IG_MODE
-            or account.username in MOCK_ACCOUNTS
-            or account.username.startswith("test_")
-            or account.username.startswith("demo_")
-            or account.username.startswith("quota_test_")
-            or account.username.startswith("mutex_test_")
-            or account.username.startswith("user_")
-            or not account.encrypted_session_data
-            or "mock_session" in decrypted_session
-            or "verified_" in decrypted_session
+            account.username != "jjahrav"
+            and (
+                settings.MOCK_IG_MODE
+                or account.username in MOCK_ACCOUNTS
+                or account.username.startswith("test_")
+                or account.username.startswith("demo_")
+                or account.username.startswith("quota_test_")
+                or account.username.startswith("mutex_test_")
+                or account.username.startswith("user_")
+                or not account.encrypted_session_data
+                or "mock_session" in decrypted_session
+                or "verified_" in decrypted_session
+            )
         )
 
         if not is_mock_account:

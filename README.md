@@ -280,7 +280,7 @@ Untuk mempermudah peninjauan dan pengujian tanpa harus menghubungkan akun Instag
 
 | Tipe Akun | Username | Password / Kode | Keterangan |
 | :--- | :--- | :--- | :--- |
-| **Akun Utama Mock** | `jjahrav` | `Password123!` | Memuat profil visual lengkap (Zahra, 1.345 Followers, 842 Following, list unfollowers realistis). |
+| **Akun Utama Mock** | `demo_test` | `Password123!` | Memuat profil visual lengkap (Demo Tester, 100 Followers, 50 Following, list unfollowers realistis). |
 | **Skenario 2FA / OTP** | `challenge_test` | Sembarang kata sandi | Memunculkan modal verifikasi OTP 6-digit. Masukkan kode: **`892014`** untuk melanjutkan. |
 | **Akun Instagram Asli** | Username IG Anda | Password IG Anda | Melakukan otentikasi langsung ke server Instagram via protokol Instagrapi. |
 | **Login Cookie Sesi** | Username IG Anda | Nilai cookie `sessionid` | Opsi darurat jika akun Anda memiliki proteksi keamanan ganda dari web browser. |

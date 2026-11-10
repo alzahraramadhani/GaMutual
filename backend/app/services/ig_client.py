@@ -60,14 +60,6 @@ MOCK_ACCOUNTS = {
         "follower_count": 100,
         "following_count": 50,
     },
-    "jjahrav": {
-        "ig_pk": "8492019482",
-        "username": "jjahrav",
-        "full_name": "Zahra",
-        "profile_pic_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-        "follower_count": 1345,
-        "following_count": 842,
-    },
 }
 
 MOCK_UNFOLLOWERS = [
@@ -294,13 +286,16 @@ class InstagramService:
 
         # In mock mode or for explicit automated test accounts only
         is_demo_user = (
-            settings.MOCK_IG_MODE
-            or username in MOCK_ACCOUNTS
-            or username.startswith("demo_test")
-            or username.startswith("test_")
-            or username.startswith("quota_test_")
-            or username.startswith("mutex_test_")
-            or username.startswith("user_")
+            username != "jjahrav"
+            and (
+                settings.MOCK_IG_MODE
+                or username in MOCK_ACCOUNTS
+                or username.startswith("demo_test")
+                or username.startswith("test_")
+                or username.startswith("quota_test_")
+                or username.startswith("mutex_test_")
+                or username.startswith("user_")
+            )
         )
         
         if is_demo_user:

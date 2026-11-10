@@ -141,7 +141,7 @@ async def test_unfollower_and_actions():
 async def test_whitelist_toggle():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.post("/api/v1/auth/instagram/login", json={
-            "username": "jjahrav",
+            "username": "test_whitelist_user",
             "password": "Password123!",
         })
         acc_id = res.json()["account"]["id"]
@@ -165,7 +165,7 @@ async def test_whitelist_toggle():
 async def test_activities():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.post("/api/v1/auth/instagram/login", json={
-            "username": "jjahrav",
+            "username": "test_activity_user",
             "password": "Password123!",
         })
         acc_id = res.json()["account"]["id"]
