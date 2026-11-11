@@ -1,16 +1,17 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DEFAULT_DB_FILE = os.path.join(BACKEND_DIR, "gamutual.db").replace("\\", "/")
+DEFAULT_DB_URL = f"sqlite+aiosqlite:///{DEFAULT_DB_FILE}"
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "GaMutual Backend API"
     VERSION: str = "2.0.0"
     API_V1_PREFIX: str = "/api/v1"
     
     # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "sqlite+aiosqlite:///./gamutual.db"
-    )
+    DATABASE_URL: str = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
     
     # Redis
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -30,5 +31,9 @@ class Settings(BaseSettings):
     MOCK_IG_MODE: bool = os.getenv("MOCK_IG_MODE", "true").lower() in ("true", "1")
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
+    def model_post_init(self, __context):
+        if self.DATABASE_URL == "sqlite+aiosqlite:///./gamutual.db":
+            self.DATABASE_URL = DEFAULT_DB_URL
 
 settings = Settings()

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { X, Check, Plus, User } from 'lucide-react';
+import { X, Check, Plus, User, LogOut } from 'lucide-react';
 import { AccountSwitcherItem } from '@/types';
+import { clearAuthSession } from '@/lib/api';
 import Link from 'next/link';
 
 interface SwitchAccountModalProps {
@@ -91,7 +92,7 @@ export default function SwitchAccountModal({
           })}
         </div>
 
-        <div className="pt-3 border-t border-slate-100">
+        <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
           <Link
             href="/login"
             onClick={onClose}
@@ -100,6 +101,17 @@ export default function SwitchAccountModal({
             <Plus size={18} />
             <span>Tambah Akun Baru</span>
           </Link>
+          <button
+            type="button"
+            onClick={() => {
+              clearAuthSession();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors text-xs font-semibold"
+          >
+            <LogOut size={16} />
+            <span>Keluar dari Akun</span>
+          </button>
         </div>
       </div>
     </div>

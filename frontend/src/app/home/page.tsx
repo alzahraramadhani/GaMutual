@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Users,
   UserCheck,
@@ -9,8 +10,6 @@ import {
   Clock,
   RefreshCw,
   Shield,
-  ShieldAlert,
-  ArrowRight,
   TrendingDown,
   UserPlus,
   Handshake,
@@ -20,13 +19,14 @@ import {
 } from 'lucide-react';
 import MobileShell from '@/components/layout/MobileShell';
 import SwitchAccountModal from '@/components/modals/SwitchAccountModal';
-import { api, getActiveAccountId, setActiveAccountId } from '@/lib/api';
+import { api, getStoredToken, getActiveAccountId, setActiveAccountId, clearAuthSession } from '@/lib/api';
 import { HomeDashboardResponse, AccountSwitcherItem } from '@/types';
 
 export default function HomePage() {
+  const router = useRouter();
   const [data, setData] = useState<HomeDashboardResponse | null>(null);
   const [accounts, setAccounts] = useState<AccountSwitcherItem[]>([]);
-  const [activeId, setActiveId] = useState<string>('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d');
+  const [activeId, setActiveId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -34,53 +34,51 @@ export default function HomePage() {
   const [switchModalOpen, setSwitchModalOpen] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const token = getStoredToken();
+    const storedId = getActiveAccountId();
+    if (!token || !storedId) {
+      router.replace('/login');
+      return;
+    }
+    loadData(storedId);
+  }, [router]);
 
   const loadData = async (targetId?: string) => {
+    const token = getStoredToken();
+    const storedId = getActiveAccountId();
+    if (!token) {
+      router.replace('/login');
+      return;
+    }
+
     setIsLoading(true);
     try {
       // 1. Load accounts list
-      const accRes = await api.getAccounts(targetId);
-      setAccounts(accRes.accounts || []);
-      const storedId = getActiveAccountId();
-      const validStored = storedId && accRes.accounts?.some((a: any) => a.id === storedId);
-      const currentActive = targetId || (validStored ? storedId : accRes.active_account_id) || 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
+      const accRes = await api.getAccounts(targetId || storedId || undefined);
+      const accList = accRes.accounts || [];
+      setAccounts(accList);
+
+      if (accList.length === 0) {
+        clearAuthSession();
+        router.replace('/login');
+        return;
+      }
+
+      const validStored = storedId && accList.some((a: any) => a.id === storedId);
+      const currentActive = targetId || (validStored ? storedId : accRes.active_account_id) || accList[0].id;
+
       setActiveId(currentActive);
       setActiveAccountId(currentActive);
 
       // 2. Load dashboard
       const dash = await api.getDashboard(currentActive);
       setData(dash);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load dashboard:', err);
-      // Fallback state if server is loading or offline
-      setData({
-        profile: {
-          id: activeId,
-          username: 'jjahrav',
-          full_name: 'jjahrav',
-          profile_pic_url: '',
-          follower_count: 0,
-          following_count: 0,
-          last_synced_text: 'Belum disinkronisasi',
-          is_encrypted: true,
-        },
-        anti_ban: {
-          used_today: 0,
-          quota_limit: 40,
-          remaining_quota: 40,
-          status_text: 'Status: Aman',
-          speed_status: 'Kecepatan algoritma anti-banned aktif',
-        },
-        relation_analysis: {
-          tidak_follback_count: 0,
-          unfollowers_baru: { count: 0, badge: '0 hari ini' },
-          followers_baru: { count: 0, badge: '0 baru' },
-          mutuals: { count: 0, badge: 'Sahabat' },
-          belum_difollow: { count: 0, badge: 'Fans' },
-        },
-      });
+      if (err?.status === 401 || err?.status === 404) {
+        clearAuthSession();
+        router.replace('/login');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -106,22 +104,14 @@ export default function HomePage() {
   };
 
   const profile = data?.profile;
-  const antiBan = data?.anti_ban;
   const relations = data?.relation_analysis;
-
-  const quotaPercent = Math.min(100, Math.round(((antiBan?.used_today || 0) / (antiBan?.quota_limit || 40)) * 100));
 
   return (
     <MobileShell showNav={true}>
       <div className="p-4 space-y-4">
-        {/* 0. Top Bar Branding GaMutual */}
-        <div className="flex items-center justify-between pt-1 pb-0.5 px-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#251245] flex items-center justify-center text-white font-bold shadow-md shadow-purple-950/20">
-              <span className="text-sm font-extrabold text-[#FEA619]">G</span>
-            </div>
-            <h1 className="text-xl font-extrabold tracking-tight text-[#251245]">GaMutual</h1>
-          </div>
+        {/* 0. Top Bar Branding GaMutual: Center aligned, text only without mockup G */}
+        <div className="flex items-center justify-center pt-2 pb-1 px-1">
+          <h1 className="text-xl font-extrabold tracking-tight text-[#251245]">GaMutual</h1>
         </div>
 
         {/* 1. Header Profil Card (Dark Purple) */}
@@ -139,9 +129,9 @@ export default function HomePage() {
               />
               <div>
                 <h2 className="text-base font-bold text-white leading-tight">
-                  {profile?.full_name || profile?.username || 'jjahrav'}
+                  {profile?.full_name || profile?.username || ''}
                 </h2>
-                <span className="text-xs text-purple-200/80">@{profile?.username || 'jjahrav'}</span>
+                <span className="text-xs text-purple-200/80">@{profile?.username || ''}</span>
               </div>
             </div>
 
@@ -163,7 +153,7 @@ export default function HomePage() {
                   Followers
                 </span>
                 <span className="text-2xl font-bold tracking-tight text-white mt-0.5 block">
-                  {profile?.follower_count?.toLocaleString('id-ID') || '1.345'}
+                  {profile?.follower_count !== undefined ? profile.follower_count.toLocaleString('id-ID') : '0'}
                 </span>
               </div>
               <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-purple-200">
@@ -177,7 +167,7 @@ export default function HomePage() {
                   Following
                 </span>
                 <span className="text-2xl font-bold tracking-tight text-white mt-0.5 block">
-                  {profile?.following_count?.toLocaleString('id-ID') || '842'}
+                  {profile?.following_count !== undefined ? profile.following_count.toLocaleString('id-ID') : '0'}
                 </span>
               </div>
               <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-purple-200">
@@ -194,7 +184,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-1.5">
               <Clock size={13} />
-              <span>{profile?.last_synced_text || 'Sync 10 mnt lalu'}</span>
+              <span>{profile?.last_synced_text || 'Belum disinkronisasi'}</span>
             </div>
           </div>
         </div>
@@ -202,7 +192,7 @@ export default function HomePage() {
         {/* 2. Tombol "Sinkronisasi Sekarang" (Amber Orange) */}
         <button
           onClick={handleSyncNow}
-          disabled={isSyncing}
+          disabled={isSyncing || isLoading}
           className="w-full py-3.5 px-4 rounded-2xl bg-[#FEA619] hover:bg-[#E59514] active:scale-[0.99] text-[#1E1B4B] font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 disabled:opacity-75"
         >
           <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
@@ -245,7 +235,7 @@ export default function HomePage() {
           <div className="flex items-baseline justify-between mt-2">
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-extrabold text-[#1E1B4B] tracking-tight">
-                {relations?.tidak_follback_count || 184}
+                {relations?.tidak_follback_count ?? 0}
               </span>
               <span className="text-sm font-semibold text-slate-500">Akun</span>
             </div>
@@ -260,7 +250,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 6. Grid 2x2: Analisis Relasi */}
+        {/* 6. Grid 2x2: Analisis Relasi Real-time */}
         <div className="grid grid-cols-2 gap-3 pb-4">
           {/* Card 1: Unfollowers Baru */}
           <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col justify-between">
@@ -272,10 +262,10 @@ export default function HomePage() {
             </div>
             <div>
               <span className="text-3xl font-bold text-[#1E1B4B] block tracking-tight">
-                {relations?.unfollowers_baru?.count || 12}
+                {relations?.unfollowers_baru?.count ?? 0}
               </span>
               <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 font-semibold text-[10px]">
-                {relations?.unfollowers_baru?.badge || '-2 hari ini'}
+                {relations?.unfollowers_baru?.badge ?? '0 hari ini'}
               </span>
             </div>
           </div>
@@ -290,10 +280,10 @@ export default function HomePage() {
             </div>
             <div>
               <span className="text-3xl font-bold text-[#1E1B4B] block tracking-tight">
-                +{relations?.followers_baru?.count || 28}
+                {(relations?.followers_baru?.count ?? 0) > 0 ? `+${relations?.followers_baru?.count}` : '0'}
               </span>
               <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#065F46] font-semibold text-[10px]">
-                {relations?.followers_baru?.badge || '+8 baru'}
+                {relations?.followers_baru?.badge ?? '+0 hari ini'}
               </span>
             </div>
           </div>
@@ -308,10 +298,10 @@ export default function HomePage() {
             </div>
             <div>
               <span className="text-3xl font-bold text-[#1E1B4B] block tracking-tight">
-                {relations?.mutuals?.count || 658}
+                {relations?.mutuals?.count ?? 0}
               </span>
               <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-purple-50 text-[#5E3A9B] font-semibold text-[10px]">
-                {relations?.mutuals?.badge || 'Sahabat'}
+                {relations?.mutuals?.badge ?? 'Sahabat'}
               </span>
             </div>
           </div>
@@ -326,10 +316,10 @@ export default function HomePage() {
             </div>
             <div>
               <span className="text-3xl font-bold text-[#1E1B4B] block tracking-tight">
-                {relations?.belum_difollow?.count || 34}
+                {relations?.belum_difollow?.count ?? 0}
               </span>
               <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-pink-50 text-pink-600 font-semibold text-[10px]">
-                {relations?.belum_difollow?.badge || 'Fans'}
+                {relations?.belum_difollow?.badge ?? 'Fans'}
               </span>
             </div>
           </div>

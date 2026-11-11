@@ -2,14 +2,15 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStoredToken } from '@/lib/api';
+import { getStoredToken, getActiveAccountId } from '@/lib/api';
 
 export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
     const token = getStoredToken();
-    if (token) {
+    const activeId = getActiveAccountId();
+    if (token && activeId) {
       router.replace('/home');
     } else {
       router.replace('/login');

@@ -95,7 +95,7 @@ export default function LoginPage() {
   };
 
   return (
-    <MobileShell showNav={false}>
+    <MobileShell showNav={false} requireAuth={false}>
       <div className="flex-1 flex flex-col justify-center px-6 py-10">
         {/* Brand Logo Header */}
         <div className="flex flex-col items-center text-center mb-8">

@@ -50,6 +50,9 @@ class SyncService:
             )
         )
 
+        detected_unfollowers = 0
+        detected_new_followers = 0
+
         if not is_mock_account:
             try:
                 from instagrapi import Client
@@ -68,15 +71,79 @@ class SyncService:
                 account.follower_count = len(followers)
                 account.following_count = len(following)
 
+                # Fetch previous relationships for snapshot diffing
+                stmt_prev = select(IGRelationship).where(IGRelationship.ig_account_id == account.id)
+                prev_res = await db.execute(stmt_prev)
+                prev_rels = {r.target_ig_pk: r for r in prev_res.scalars().all()}
+
                 # Keep track of existing whitelisted accounts
                 wl_stmt = select(IGWhitelist.target_ig_pk).where(IGWhitelist.ig_account_id == account.id)
                 wl_res = await db.execute(wl_stmt)
                 whitelisted_pks = set(wl_res.scalars().all())
+                for r in prev_rels.values():
+                    if r.is_whitelisted:
+                        whitelisted_pks.add(r.target_ig_pk)
+
+                follower_pks = set(str(k) for k in followers.keys())
+                following_pks = set(str(k) for k in following.keys())
+
+                # Diffing logic: record real-time events if previous relationships existed
+                if prev_rels:
+                    # Users who unfollowed us: previously follower, now not follower
+                    for pk_s, rel in prev_rels.items():
+                        if rel.is_follower and pk_s not in follower_pks:
+                            db.add(IGEvent(
+                                id=str(uuid.uuid4()),
+                                ig_account_id=account.id,
+                                target_ig_pk=pk_s,
+                                target_username=rel.target_username,
+                                target_full_name=rel.target_full_name,
+                                target_pic_url=rel.target_pic_url,
+                                event_type="UNFOLLOWED_YOU",
+                                event_date=today,
+                                created_at=now,
+                            ))
+                            detected_unfollowers += 1
+
+                    # New followers: currently follower, previously wasn't follower
+                    for pk_s in follower_pks:
+                        prev = prev_rels.get(pk_s)
+                        if not prev or not prev.is_follower:
+                            u = followers.get(pk_s) or followers.get(int(pk_s) if pk_s.isdigit() else pk_s)
+                            uname = getattr(u, "username", pk_s) if u else pk_s
+                            fname = getattr(u, "full_name", None) or uname
+                            pic = str(getattr(u, "profile_pic_url", "")) if getattr(u, "profile_pic_url", None) else None
+                            db.add(IGEvent(
+                                id=str(uuid.uuid4()),
+                                ig_account_id=account.id,
+                                target_ig_pk=pk_s,
+                                target_username=uname,
+                                target_full_name=fname,
+                                target_pic_url=pic,
+                                event_type="NEW_FOLLOWER",
+                                event_date=today,
+                                created_at=now,
+                            ))
+                            detected_new_followers += 1
+
+                    # You unfollowed outside app: previously following, now not following
+                    for pk_s, rel in prev_rels.items():
+                        if rel.is_following and pk_s not in following_pks:
+                            db.add(IGEvent(
+                                id=str(uuid.uuid4()),
+                                ig_account_id=account.id,
+                                target_ig_pk=pk_s,
+                                target_username=rel.target_username,
+                                target_full_name=rel.target_full_name,
+                                target_pic_url=rel.target_pic_url,
+                                event_type="YOU_UNFOLLOWED",
+                                event_date=today,
+                                created_at=now,
+                            ))
 
                 # Clear previous relationships for clean sync
                 await db.execute(delete(IGRelationship).where(IGRelationship.ig_account_id == account.id))
 
-                follower_pks = set(str(k) for k in followers.keys())
                 for pk_str, u in following.items():
                     pk_s = str(pk_str)
                     is_fol = pk_s in follower_pks
@@ -95,7 +162,6 @@ class SyncService:
                         last_checked_at=now,
                     ))
 
-                following_pks = set(str(k) for k in following.keys())
                 for pk_str, u in followers.items():
                     pk_s = str(pk_str)
                     if pk_s not in following_pks:
@@ -114,9 +180,10 @@ class SyncService:
                             last_checked_at=now,
                         ))
 
-                logger.info(f"Live sync successful for @{account.username}: {len(followers)} followers, {len(following)} following.")
+                logger.info(f"Live sync successful for @{account.username}: {len(followers)} followers, {len(following)} following. Diff: {detected_new_followers} new, {detected_unfollowers} unfollowers.")
             except Exception as e:
                 logger.error(f"Live Instagram sync error for @{account.username}: {e}")
+                await db.rollback()
         else:
             # Check existing relationships for mock demo
             stmt = select(IGRelationship).where(IGRelationship.ig_account_id == account.id)
@@ -125,6 +192,8 @@ class SyncService:
 
             # If no relationships exist yet, populate standard mock data set
             if len(existing_rels) == 0:
+                detected_new_followers = 8
+                detected_unfollowers = 2
                 for item in MOCK_UNFOLLOWERS:
                     rel = IGRelationship(
                         id=str(uuid.uuid4()),
@@ -196,8 +265,8 @@ class SyncService:
             ig_account_id=account.id,
             follower_count=account.follower_count if account.follower_count is not None else (100 if is_mock_account else 0),
             following_count=account.following_count if account.following_count is not None else (50 if is_mock_account else 0),
-            new_followers_count=8 if is_mock_account else 0,
-            unfollowers_count=2 if is_mock_account else 0,
+            new_followers_count=detected_new_followers,
+            unfollowers_count=detected_unfollowers,
             created_at=now,
         )
         db.add(snapshot)
@@ -209,8 +278,8 @@ class SyncService:
         return {
             "status": "COMPLETED",
             "progress_percentage": 100,
-            "detected_unfollowers": 2 if is_mock_account else 0,
-            "detected_new_followers": 8 if is_mock_account else 0,
+            "detected_unfollowers": detected_unfollowers,
+            "detected_new_followers": detected_new_followers,
             "synced_at": now.isoformat(),
         }
 

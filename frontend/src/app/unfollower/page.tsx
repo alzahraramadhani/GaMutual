@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   Shield,
@@ -13,24 +14,25 @@ import {
 } from 'lucide-react';
 import MobileShell from '@/components/layout/MobileShell';
 import UnfollowConfirmModal from '@/components/unfollower/UnfollowConfirmModal';
-import { api, getActiveAccountId } from '@/lib/api';
+import { api, getActiveAccountId, getStoredToken, clearAuthSession } from '@/lib/api';
 import { UnfollowerItem, AntiBanInfo } from '@/types';
 
 export default function UnfollowerPage() {
+  const router = useRouter();
   const [items, setItems] = useState<UnfollowerItem[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(184);
-  const [whitelistedCount, setWhitelistedCount] = useState<number>(18);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [whitelistedCount, setWhitelistedCount] = useState<number>(0);
   const [antiBan, setAntiBan] = useState<AntiBanInfo>({
-    used_today: 24,
+    used_today: 0,
     quota_limit: 40,
-    remaining_quota: 16,
+    remaining_quota: 40,
     status: 'Status: Aman',
   });
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'whitelisted'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeId, setActiveId] = useState<string>('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d');
+  const [activeId, setActiveId] = useState<string>('');
 
   // Cooldown countdown state
   const [cooldownCountdown, setCooldownCountdown] = useState<number | null>(null);
@@ -41,10 +43,15 @@ export default function UnfollowerPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
-    const accId = getActiveAccountId() || 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
+    const accId = getActiveAccountId();
+    const token = getStoredToken();
+    if (!token || !accId) {
+      router.replace('/login');
+      return;
+    }
     setActiveId(accId);
     loadUnfollowers(accId, activeFilter, searchQuery);
-  }, [activeFilter]);
+  }, [activeFilter, router]);
 
   // Handle countdown timer tick
   useEffect(() => {
@@ -71,11 +78,15 @@ export default function UnfollowerPage() {
         limit: 50,
       });
       setItems(res.items || []);
-      setTotalCount(res.total_count || 184);
-      setWhitelistedCount(res.whitelisted_count || 18);
+      setTotalCount(res.total_count ?? 0);
+      setWhitelistedCount(res.whitelisted_count ?? 0);
       if (res.anti_ban) setAntiBan(res.anti_ban);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load unfollowers:', err);
+      if (err?.status === 401 || err?.status === 404) {
+        clearAuthSession();
+        router.replace('/login');
+      }
     } finally {
       setIsLoading(false);
     }

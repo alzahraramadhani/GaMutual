@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   UserMinus,
   UserPlus,
@@ -9,26 +10,43 @@ import {
   Filter,
 } from 'lucide-react';
 import MobileShell from '@/components/layout/MobileShell';
-import { api, getActiveAccountId } from '@/lib/api';
+import { api, getActiveAccountId, getStoredToken, clearAuthSession } from '@/lib/api';
 import { ActivitiesResponse } from '@/types';
 
 export default function ActivityPage() {
+  const router = useRouter();
   const [data, setData] = useState<ActivitiesResponse | null>(null);
   const [filter, setFilter] = useState<'all' | 'unfollowed' | 'follower_baru'>('all');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const accId = getActiveAccountId();
+    const token = getStoredToken();
+    if (!token || !accId) {
+      router.replace('/login');
+      return;
+    }
     loadActivities(filter);
-  }, [filter]);
+  }, [filter, router]);
 
   const loadActivities = async (f: string) => {
+    const accId = getActiveAccountId();
+    const token = getStoredToken();
+    if (!token || !accId) {
+      router.replace('/login');
+      return;
+    }
+
     setIsLoading(true);
-    const accId = getActiveAccountId() || 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
     try {
       const res = await api.getActivities(accId, f);
       setData(res);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load activities:', err);
+      if (err?.status === 401 || err?.status === 404) {
+        clearAuthSession();
+        router.replace('/login');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +73,7 @@ export default function ActivityPage() {
             <div>
               <span className="text-[11px] text-[#6B7280] block font-medium">Hari ini</span>
               <span className="text-2xl font-extrabold text-[#1E1B4B] tracking-tight block mt-0.5">
-                {highlights?.unfollowed_today || 12} Akun
+                {highlights?.unfollowed_today ?? 0} Akun
               </span>
               <span className="text-[11px] font-semibold text-rose-500 mt-1 block">Unfollowed</span>
             </div>
@@ -69,7 +87,7 @@ export default function ActivityPage() {
             <div>
               <span className="text-[11px] text-[#6B7280] block font-medium">Hari ini</span>
               <span className="text-2xl font-extrabold text-[#1E1B4B] tracking-tight block mt-0.5">
-                +{highlights?.new_followers_today || 28} Akun
+                {(highlights?.new_followers_today ?? 0) > 0 ? `+${highlights?.new_followers_today}` : '0'} Akun
               </span>
               <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">Follower Baru</span>
             </div>

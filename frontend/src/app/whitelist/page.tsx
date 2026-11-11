@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Shield, ShieldCheck, Search, Users, ExternalLink, RefreshCw } from 'lucide-react';
 import MobileShell from '@/components/layout/MobileShell';
-import { api, getActiveAccountId } from '@/lib/api';
+import { api, getActiveAccountId, getStoredToken, clearAuthSession } from '@/lib/api';
 import { UnfollowerItem } from '@/types';
 
 export default function WhitelistPage() {
+  const router = useRouter();
   const [items, setItems] = useState<UnfollowerItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -15,14 +17,31 @@ export default function WhitelistPage() {
   const [togglingPk, setTogglingPk] = useState<string | null>(null);
 
   useEffect(() => {
+    const token = getStoredToken();
+    const stored = getActiveAccountId();
+    if (!token || !stored) {
+      router.replace('/login');
+      return;
+    }
     initData();
-  }, []);
+  }, [router]);
 
   const initData = async () => {
+    const token = getStoredToken();
+    const stored = getActiveAccountId();
+    if (!token || !stored) {
+      router.replace('/login');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const accRes = await api.getAccounts();
-      const stored = getActiveAccountId();
+      const accRes = await api.getAccounts(stored);
+      if (!accRes.accounts || accRes.accounts.length === 0) {
+        clearAuthSession();
+        router.replace('/login');
+        return;
+      }
       const validStored = stored && accRes.accounts?.some((a: any) => a.id === stored);
       const curId = (validStored ? stored : accRes.active_account_id) || accRes.accounts?.[0]?.id || '';
       setActiveId(curId);
@@ -31,8 +50,12 @@ export default function WhitelistPage() {
         const res = await api.getUnfollowers(curId, { filter: 'all', limit: 100 });
         setItems(res.items || []);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load non-mutual users for whitelist:', err);
+      if (err?.status === 401 || err?.status === 404) {
+        clearAuthSession();
+        router.replace('/login');
+      }
     } finally {
       setIsLoading(false);
     }

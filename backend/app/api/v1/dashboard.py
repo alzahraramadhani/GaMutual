@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone, date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db.models import InstagramAccount, IGRelationship, IGSnapshot, IGEvent
@@ -77,9 +77,10 @@ async def get_home_dashboard(account_id: str, db: AsyncSession = Depends(get_db)
 
     # 4. Unfollowers today from IGEvent
     today = date.today()
+    today_str = str(today)
     stmt_unfoll_ev = select(func.count(IGEvent.id)).where(
         IGEvent.ig_account_id == account_id,
-        IGEvent.event_date == today,
+        or_(IGEvent.event_date == today, func.date(IGEvent.created_at) == today_str),
         IGEvent.event_type.in_(["UNFOLLOWED_YOU", "YOU_UNFOLLOWED"]),
     )
     unfoll_ev_res = await db.execute(stmt_unfoll_ev)
@@ -88,7 +89,7 @@ async def get_home_dashboard(account_id: str, db: AsyncSession = Depends(get_db)
     # 5. New followers today from IGEvent
     stmt_new_ev = select(func.count(IGEvent.id)).where(
         IGEvent.ig_account_id == account_id,
-        IGEvent.event_date == today,
+        or_(IGEvent.event_date == today, func.date(IGEvent.created_at) == today_str),
         IGEvent.event_type == "NEW_FOLLOWER",
     )
     new_ev_res = await db.execute(stmt_new_ev)
@@ -120,7 +121,7 @@ async def get_home_dashboard(account_id: str, db: AsyncSession = Depends(get_db)
             },
             "followers_baru": {
                 "count": new_today_count,
-                "badge": f"+{new_today_count} baru" if new_today_count > 0 else "0 baru",
+                "badge": f"+{new_today_count} hari ini",
             },
             "mutuals": {
                 "count": mutuals_count,

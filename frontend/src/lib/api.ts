@@ -24,6 +24,13 @@ export function setActiveAccountId(id: string) {
   }
 }
 
+export function clearAuthSession() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('gamutual_token');
+    localStorage.removeItem('gamutual_account_id');
+  }
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getStoredToken();
   const headers: Record<string, string> = {
@@ -44,6 +51,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearAuthSession();
+    }
     const errorMsg = data?.detail?.message || data?.detail || data?.message || 'Terjadi kesalahan sistem';
     const err: any = new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     err.status = res.status;
