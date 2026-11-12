@@ -58,14 +58,21 @@ Berbeda dengan aplikasi pihak ketiga tradisional yang sering kali memicu penangg
 
 ### 📊 3. Dashboard Analitik Relasi Mendalam
 - **Statistik Profil Real-Time:** Menampilkan jumlah Followers, Following, status enkripsi data, dan waktu sinkronisasi terakhir.
+- **Top Bar Branding Bersih & Terpusat:** Tipografi "GaMutual" diposisikan *center-aligned* dengan palet warna `#251245` tanpa ikon mockup berlebih.
 - **Hero Card "Tidak Follback" (GaMutual):** Menyoroti jumlah akun yang Anda ikuti namun tidak mengikuti Anda kembali.
-- **Grid Analisis Relasi 2x2:**
-  - *Unfollowers Baru* (disertai tren harian).
-  - *Followers Baru* (disertai badge pertambahan).
-  - *Mutuals / Sahabat* (saling mengikuti).
-  - *Belum Difollow / Fans* (mengikuti Anda tapi belum Anda ikuti balik).
+- **Grid Analisis Relasi 2x2 Real-Time:**
+  - *Unfollowers Baru* (dihitung per hari dengan badge kapsul `"-{jumlah} hari ini"`).
+  - *Followers Baru* (dihitung per hari dengan badge kapsul `"+{jumlah} hari ini"`).
+  - *Mutuals / Sahabat* (saling mengikuti, badge "Sahabat").
+  - *Belum Difollow / Fans* (mengikuti Anda tapi belum Anda ikuti balik, badge "Fans").
+- **Live Snapshot Diffing Engine:** Secara otomatis mendeteksi akun baru yang mem-follow dan akun yang meng-unfollow saat proses sinkronisasi berjalan secara realtime.
 
-### ⚡ 4. Manajemen Unfollower Interaktif
+### 🔒 4. Autentikasi Ketat & Route Guard
+- **Client-Side AuthGuard:** Melindungi seluruh rute privat (`/home`, `/unfollower`, `/whitelist`, `/activity`). Pengguna tanpa sesi valid secara otomatis dialihkan langsung ke `/login`.
+- **Auto Session Clean-up:** Menangani penanganan error 401 Unauthorized secara terpusat untuk membersihkan kredensial kedaluwarsa dari penyimpanan peramban.
+- **Dedicated Logout Option:** Tombol *"Keluar dari Akun"* pada antarmuka pemilihan akun untuk menghapus token dan sesi secara aman.
+
+### ⚡ 5. Manajemen Unfollower Interaktif
 - **Pencarian Cepat & Filter:** Cari pengguna berdasarkan username atau nama lengkap, serta filter tab *Semua* vs *Terlindungi (Whitelist)*.
 - **3 Micro-States Tombol Aksi:**
   1. *Normal State:* Tombol oranye elegan "Unfollow".
@@ -74,11 +81,11 @@ Berbeda dengan aplikasi pihak ketiga tradisional yang sering kali memicu penangg
 - **Modal Konfirmasi Berperingatan:** Melindungi dari klik tidak sengaja sebelum aksi dieksekusi.
 - **Pintasan Profil Instagram:** Tautan eksternal yang langsung membuka profil akun di aplikasi/web Instagram resmi.
 
-### ⭐ 5. Proteksi Akun Terlindungi (Whitelist)
+### ⭐ 6. Proteksi Akun Terlindungi (Whitelist)
 - Tandai akun sahabat, keluarga, atau akun inspiratif sebagai *Terlindungi*.
 - Akun yang masuk daftar whitelist terkunci dari tombol unfollow massal/tidak sengaja.
 
-### 📜 6. Riwayat Aktivitas Kronologis (Activity Feed)
+### 📜 7. Riwayat Aktivitas Kronologis (Activity Feed)
 - **Ringkasan Sorotan Hari Ini:** Kartu sorotan total akun yang di-unfollow dan follower baru yang masuk hari ini.
 - **Pengelompokan Waktu Otomatis:** Peristiwa dikelompokkan berdasarkan tanggal (*Hari Ini*, *Kemarin*, atau tanggal spesifik) dengan stempel waktu akurat dalam zona waktu Indonesia Barat (WIB).
 
@@ -307,6 +314,9 @@ Jalankan pengujian dengan perintah:
 cd backend
 .\venv\Scripts\pytest -v tests/test_api.py
 ```
+
+> [!NOTE]
+> Seluruh test backend dieksekusi menggunakan database SQLite in-memory yang terisolasi penuh (`sqlite+aiosqlite:///:memory:` via `StaticPool`), sehingga eksekusi testing tidak akan pernah mengotori atau mengubah data akun asli pada database utama.
 
 ### Pengujian Frontend (Build Verification)
 Pastikan kode TypeScript dan komponen React terkompilasi tanpa error:
