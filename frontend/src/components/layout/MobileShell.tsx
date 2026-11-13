@@ -17,7 +17,7 @@ export default function MobileShell({
 }: MobileShellProps) {
   const content = (
     <div className="min-h-screen bg-slate-200/70 flex justify-center selection:bg-[#FEA619] selection:text-white">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F8FAFC] shadow-2xl relative pb-28 flex flex-col font-sans">
+      <div className={`w-full max-w-[430px] min-h-screen bg-[#F8FAFC] shadow-2xl relative ${showNav ? 'pb-28' : 'pb-8'} flex flex-col font-sans`}>
         <main className="flex-1 w-full flex flex-col">{children}</main>
         {showNav && <BottomNav />}
       </div>

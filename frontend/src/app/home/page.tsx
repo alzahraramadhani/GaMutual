@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import MobileShell from '@/components/layout/MobileShell';
 import SwitchAccountModal from '@/components/modals/SwitchAccountModal';
-import { api, getStoredToken, getActiveAccountId, setActiveAccountId, clearAuthSession } from '@/lib/api';
+import { api, getStoredToken, getActiveAccountId, setActiveAccountId, setActiveUsername, clearAuthSession } from '@/lib/api';
 import { HomeDashboardResponse, AccountSwitcherItem } from '@/types';
 
 export default function HomePage() {
@@ -69,6 +69,11 @@ export default function HomePage() {
 
       setActiveId(currentActive);
       setActiveAccountId(currentActive);
+
+      const activeAcc = accList.find((a: any) => a.id === currentActive);
+      if (activeAcc?.username) {
+        setActiveUsername(activeAcc.username);
+      }
 
       // 2. Load dashboard
       const dash = await api.getDashboard(currentActive);

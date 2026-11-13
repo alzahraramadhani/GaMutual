@@ -6,7 +6,7 @@ import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Instagram, AlertCircl
 import MobileShell from '@/components/layout/MobileShell';
 import ChallengeModal from '@/components/modals/ChallengeModal';
 import SessionIdModal from '@/components/modals/SessionIdModal';
-import { api, setStoredToken, setActiveAccountId } from '@/lib/api';
+import { api, setStoredToken, setActiveAccountId, setActiveUsername } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,6 +39,9 @@ export default function LoginPage() {
         if (res.account?.id) {
           setActiveAccountId(res.account.id);
         }
+        if (res.account?.username) {
+          setActiveUsername(res.account.username);
+        }
         setSessionIdModalOpen(false);
         router.push('/home');
       }
@@ -69,6 +72,9 @@ export default function LoginPage() {
         setStoredToken(res.session_token);
         if (res.account?.id) {
           setActiveAccountId(res.account.id);
+        }
+        if (res.account?.username) {
+          setActiveUsername(res.account.username);
         }
         router.push('/home');
       }

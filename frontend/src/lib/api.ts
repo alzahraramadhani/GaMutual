@@ -24,10 +24,22 @@ export function setActiveAccountId(id: string) {
   }
 }
 
+export function getActiveUsername(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('gamutual_username');
+}
+
+export function setActiveUsername(username: string) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('gamutual_username', username);
+  }
+}
+
 export function clearAuthSession() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('gamutual_token');
     localStorage.removeItem('gamutual_account_id');
+    localStorage.removeItem('gamutual_username');
   }
 }
 
