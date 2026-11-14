@@ -418,11 +418,9 @@ export default function LandingPage() {
                   atau <span className="text-[#5E3A9B] font-semibold underline underline-offset-2">pilih dari HP/laptop</span>
                 </p>
                 <div className="flex items-center gap-2 mt-3 text-[10px] text-slate-400 font-medium">
-                  <span className="bg-slate-200/80 px-2 py-0.5 rounded-md text-slate-600">.ZIP</span>
+                  <span className="bg-slate-200/80 px-2.5 py-0.5 rounded-md text-slate-600 font-semibold">.zip</span>
                   <span>•</span>
-                  <span className="bg-slate-200/80 px-2 py-0.5 rounded-md text-slate-600">followers_1.json</span>
-                  <span>•</span>
-                  <span className="bg-slate-200/80 px-2 py-0.5 rounded-md text-slate-600">following.json</span>
+                  <span className="bg-slate-200/80 px-2.5 py-0.5 rounded-md text-slate-600 font-semibold">.json</span>
                 </div>
               </>
             )}
