@@ -314,21 +314,9 @@ export default function LandingPage() {
 
         {/* Drag & Drop Upload Zone */}
         <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-[#1E1B4B]">Unggah Data Instagram</h2>
-              <p className="text-[11px] text-slate-500">Mendukung berkas .zip atau .json</p>
-            </div>
-
-            {/* Tutorial Button */}
-            <button
-              type="button"
-              onClick={() => setTutorialOpen(true)}
-              className="text-xs font-semibold text-[#5E3A9B] hover:text-[#4C2E7F] bg-purple-50 hover:bg-purple-100/80 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors"
-            >
-              <HelpCircle size={14} />
-              <span>Cara Unduh Data Instagram ℹ</span>
-            </button>
+          <div>
+            <h2 className="text-sm font-bold text-[#1E1B4B]">Unggah Data Instagram</h2>
+            <p className="text-[11px] text-slate-500">Mendukung berkas .zip atau .json</p>
           </div>
 
           {/* Staged file progress (if user uploaded 1 file first) */}
@@ -452,10 +440,10 @@ export default function LandingPage() {
           <button
             type="button"
             onClick={() => setTutorialOpen(true)}
-            className="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
           >
-            <Info size={14} className="text-[#5E3A9B]" />
-            <span>Belum punya file ekspor Instagram? Lihat Tutorial</span>
+            <HelpCircle size={15} className="text-[#5E3A9B]" />
+            <span>Panduan Cara Unduh Data Instagram</span>
           </button>
         </div>
 
