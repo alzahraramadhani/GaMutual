@@ -327,6 +327,17 @@ npm run build
 
 ---
 
+## ☁️ Cloud Deployment Gratis (Vercel + Render)
+
+Aplikasi GaMutual dapat di-hosting secara **100% GRATIS (Rp 0)** tanpa perlu kartu kredit:
+- **Frontend (Next.js 14):** Di-hosting gratis di **[Vercel](https://vercel.com)** dengan CDN cepat dan otomatis SSL.
+- **Backend (Python FastAPI):** Di-hosting gratis di **[Render.com](https://render.com)** menggunakan Blueprint `render.yaml`.
+
+📖 **Panduan Lengkap Langkah demi Langkah:**
+Silakan baca panduan visual di [documentation/DEPLOYMENT_GUIDE.md](documentation/DEPLOYMENT_GUIDE.md).
+
+---
+
 ## 🐳 Deployment dengan Docker Compose
 
 Untuk menjalankan seluruh ekosistem (Frontend, Backend API, PostgreSQL, Redis) secara kontainerisasi satu-perintah:
