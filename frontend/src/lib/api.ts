@@ -1,10 +1,19 @@
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL 
-  ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '') 
-  : 'http://127.0.0.1:8000';
+function getApiBaseUrl(): string {
+  // Client-side in browser: use relative path /api/v1 (routed to backend service via Vercel rewrites),
+  // or use NEXT_PUBLIC_API_URL if explicitly specified.
+  if (typeof window !== 'undefined') {
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      return `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')}/api/v1`;
+    }
+    return '/api/v1';
+  }
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? `${rawApiUrl}/api/v1`
-  : 'http://127.0.0.1:8000/api/v1';
+  // Server-side (SSR / Server Functions): use BACKEND_URL bound from Vercel service binding
+  const serverBase = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  return `${serverBase.replace(/\/+$/, '')}/api/v1`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null;

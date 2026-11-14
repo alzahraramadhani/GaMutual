@@ -59,3 +59,4 @@ Panduan lengkap langkah demi langkah untuk melakukan hosting aplikasi **GaMutual
 > [!TIP]
 > **Tips Perawatan Render Free Tier:**
 > Layanan web gratis di Render akan memasuki mode tidur (*sleep*) jika tidak ada pengunjung selama 15 menit. Saat pertama kali ada pengunjung yang mengakses fitur login langsung setelah periode tidur, server memerlukan waktu sekitar 30 detik untuk aktif kembali. Fitur analisis ZIP/JSON di frontend tetap berjalan instan karena diproses 100% di browser.
+

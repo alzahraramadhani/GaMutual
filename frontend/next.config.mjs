@@ -14,12 +14,11 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const backendTarget = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL 
-          ? `${process.env.NEXT_PUBLIC_API_URL}/api/:path*` 
-          : 'http://127.0.0.1:8000/api/:path*',
+        destination: `${backendTarget.replace(/\/+$/, '')}/api/:path*`,
       },
     ];
   },
