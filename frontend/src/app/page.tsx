@@ -468,7 +468,7 @@ export default function LandingPage() {
           <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-3 flex items-start gap-2.5 text-amber-900">
             <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
             <div className="text-[11px] leading-relaxed">
-              <strong className="font-semibold block text-amber-950 mb-0.5">⚠️ Perhatian:</strong>
+              <strong className="font-semibold block text-amber-950 mb-0.5">Perhatian:</strong>
               Metode login langsung menggunakan cookie berisiko memicu pembatasan/peringatan otomatisasi dari Meta (Instagram).
             </div>
           </div>
